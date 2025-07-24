@@ -35,6 +35,8 @@ interface QuotationListProps {
   onQuotationToInvoice: (quotationId: string) => void;
   onUpdateStatus: (quotationId: string, status: string) => void;
   onDelete: (quotationId: string) => void;
+  onDownloadPDF?: (id: string) => void;
+  onSendToCustomer?: (id: string) => void;
 }
 
 const QuotationList = ({ 
@@ -43,7 +45,9 @@ const QuotationList = ({
   onViewQuotation, 
   onQuotationToInvoice, 
   onUpdateStatus, 
-  onDelete 
+  onDelete,
+  onDownloadPDF,
+  onSendToCustomer 
 }: QuotationListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -167,7 +171,7 @@ const QuotationList = ({
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => console.log('Download PDF clicked')}>
+                          <DropdownMenuItem onClick={() => onDownloadPDF?.(quotation.id)}>
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                           </DropdownMenuItem>
@@ -176,7 +180,7 @@ const QuotationList = ({
                             Quotation to Invoice
                           </DropdownMenuItem>
                           {quotation.status === "save" && (
-                            <DropdownMenuItem onClick={() => onUpdateStatus(quotation.id, "sent")}>
+                            <DropdownMenuItem onClick={() => onSendToCustomer?.(quotation.id)}>
                               <Send className="mr-2 h-4 w-4" />
                               Send to Customer
                             </DropdownMenuItem>

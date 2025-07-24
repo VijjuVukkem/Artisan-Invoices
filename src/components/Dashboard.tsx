@@ -16,9 +16,14 @@ interface DashboardProps {
   quotations: any[];
   invoices: any[];
   customers: any[];
+  onCreateQuotation: () => void;
+  onCreateInvoice: () => void;
+  onCreateCustomer: () => void;
+  onViewQuotations: () => void;
+  onViewInvoices: () => void;
 }
 
-const Dashboard = ({ quotations, invoices, customers }: DashboardProps) => {
+const Dashboard = ({ quotations, invoices, customers, onCreateQuotation, onCreateInvoice, onCreateCustomer, onViewQuotations, onViewInvoices }: DashboardProps) => {
   const totalRevenue = invoices
     .filter(i => i.status === "paid")
     .reduce((sum, i) => sum + i.amount, 0);
@@ -135,7 +140,7 @@ const Dashboard = ({ quotations, invoices, customers }: DashboardProps) => {
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={onViewQuotations}>
                 <Eye className="mr-2 h-4 w-4" />
                 View All Quotations
               </Button>
@@ -166,7 +171,7 @@ const Dashboard = ({ quotations, invoices, customers }: DashboardProps) => {
                   </div>
                 </div>
               ))}
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={onViewInvoices}>
                 <Eye className="mr-2 h-4 w-4" />
                 View All Invoices
               </Button>
@@ -182,15 +187,15 @@ const Dashboard = ({ quotations, invoices, customers }: DashboardProps) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button className="h-20 flex-col space-y-2">
+            <Button className="h-20 flex-col space-y-2" onClick={onCreateQuotation}>
               <FileText className="h-6 w-6" />
               <span>Create Quotation</span>
             </Button>
-            <Button className="h-20 flex-col space-y-2" variant="outline">
+            <Button className="h-20 flex-col space-y-2" variant="outline" onClick={onCreateInvoice}>
               <Receipt className="h-6 w-6" />
               <span>Create Invoice</span>
             </Button>
-            <Button className="h-20 flex-col space-y-2" variant="outline">
+            <Button className="h-20 flex-col space-y-2" variant="outline" onClick={onCreateCustomer}>
               <Users className="h-6 w-6" />
               <span>Add Customer</span>
             </Button>

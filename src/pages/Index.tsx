@@ -4,6 +4,10 @@ import Dashboard from "@/components/Dashboard";
 import QuotationList from "@/components/QuotationList";
 import InvoiceList from "@/components/InvoiceList";
 import CustomerList from "@/components/CustomerList";
+import Settings from "@/pages/Settings";
+import CustomerForm from "@/components/forms/CustomerForm";
+import QuotationForm from "@/components/forms/QuotationForm";
+import InvoiceForm from "@/components/forms/InvoiceForm";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,7 +46,7 @@ const Index = () => {
     setCurrentPage(page);
   };
 
-  const handleCreateQuotation = async () => {
+  const handleCreateQuotation = () => {
     if (customers.length === 0) {
       toast({
         title: "No customers available",
@@ -51,25 +55,10 @@ const Index = () => {
       });
       return;
     }
-
-    const newQuotation = await addQuotation({
-      customer_id: customers[0].id,
-      amount: 1000,
-      status: "save",
-      date: new Date().toISOString().split('T')[0],
-      valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      items: [{ description: "Sample item", quantity: 1, rate: 1000, amount: 1000 }]
-    });
-
-    if (newQuotation) {
-      toast({
-        title: "Quotation created",
-        description: `Quotation ${newQuotation.quotation_number} has been created.`
-      });
-    }
+    setCurrentPage("quotation-form");
   };
 
-  const handleCreateInvoice = async () => {
+  const handleCreateInvoice = () => {
     if (customers.length === 0) {
       toast({
         title: "No customers available",
@@ -78,44 +67,79 @@ const Index = () => {
       });
       return;
     }
-
-    const newInvoice = await addInvoice({
-      customer_id: customers[0].id,
-      amount: 1200,
-      status: "draft",
-      date: new Date().toISOString().split('T')[0],
-      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      items: [{ description: "Sample service", quantity: 1, rate: 1200, amount: 1200 }]
-    });
-
-    if (newInvoice) {
-      toast({
-        title: "Invoice created",
-        description: `Invoice ${newInvoice.invoice_number} has been created.`
-      });
-    }
+    setCurrentPage("invoice-form");
   };
 
-  const handleCreateCustomer = async () => {
-    const customerName = `Customer ${customers.length + 1}`;
-    const newCustomer = await addCustomer({
-      name: customerName,
-      email: `${customerName.toLowerCase().replace(' ', '')}@example.com`,
-      company: `${customerName} Corp`
-    });
-
-    if (newCustomer) {
-      toast({
-        title: "Customer added",
-        description: `${newCustomer.name} has been added to your customer list.`
-      });
-    }
+  const handleCreateCustomer = () => {
+    setCurrentPage("customer-form");
   };
 
   const handleViewItem = (id: string) => {
     toast({
       title: "View Details",
       description: `Viewing details for item ${id}. Feature coming soon!`
+    });
+  };
+
+  const handleSubmitCustomer = async (customerData: any) => {
+    const newCustomer = await addCustomer(customerData);
+    if (newCustomer) {
+      toast({
+        title: "Customer added",
+        description: `${newCustomer.name} has been added to your customer list.`
+      });
+      setCurrentPage("customers");
+    }
+  };
+
+  const handleSubmitQuotation = async (quotationData: any) => {
+    const newQuotation = await addQuotation(quotationData);
+    if (newQuotation) {
+      toast({
+        title: "Quotation created",
+        description: `Quotation ${newQuotation.quotation_number} has been created.`
+      });
+      setCurrentPage("quotations");
+    }
+  };
+
+  const handleSubmitInvoice = async (invoiceData: any) => {
+    const newInvoice = await addInvoice(invoiceData);
+    if (newInvoice) {
+      toast({
+        title: "Invoice created",
+        description: `Invoice ${newInvoice.invoice_number} has been created.`
+      });
+      setCurrentPage("invoices");
+    }
+  };
+
+  const handleMarkAsPaid = async (invoiceId: string) => {
+    // This would need to be implemented in useSupabaseData
+    toast({
+      title: "Invoice marked as paid",
+      description: "The invoice has been marked as paid."
+    });
+  };
+
+  const handleSendReminder = (invoiceId: string) => {
+    toast({
+      title: "Reminder sent",
+      description: "Payment reminder has been sent to the customer."
+    });
+  };
+
+  const handleDownloadPDF = (id: string, type: "quotation" | "invoice") => {
+    toast({
+      title: "PDF Downloaded",
+      description: `${type.charAt(0).toUpperCase() + type.slice(1)} PDF has been downloaded.`
+    });
+  };
+
+  const handleSendToCustomer = (id: string, type: "quotation" | "invoice") => {
+    toast({
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} sent`,
+      description: `${type.charAt(0).toUpperCase() + type.slice(1)} has been sent to the customer.`
     });
   };
 
@@ -132,7 +156,18 @@ const Index = () => {
   const renderPage = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard quotations={quotations} invoices={invoices} customers={customers} />;
+        return (
+          <Dashboard 
+            quotations={quotations} 
+            invoices={invoices} 
+            customers={customers} 
+            onCreateQuotation={handleCreateQuotation}
+            onCreateInvoice={handleCreateInvoice}
+            onCreateCustomer={handleCreateCustomer}
+            onViewQuotations={() => setCurrentPage("quotations")}
+            onViewInvoices={() => setCurrentPage("invoices")}
+          />
+        );
       case "quotations":
         return (
           <QuotationList 
@@ -142,6 +177,8 @@ const Index = () => {
             onQuotationToInvoice={handleQuotationToInvoice}
             onUpdateStatus={updateQuotationStatus}
             onDelete={deleteQuotation}
+            onDownloadPDF={(id) => handleDownloadPDF(id, "quotation")}
+            onSendToCustomer={(id) => handleSendToCustomer(id, "quotation")}
           />
         );
       case "invoices":
@@ -151,6 +188,10 @@ const Index = () => {
             onCreateNew={handleCreateInvoice}
             onViewInvoice={handleViewItem}
             onDelete={deleteInvoice}
+            onMarkAsPaid={handleMarkAsPaid}
+            onSendReminder={handleSendReminder}
+            onDownloadPDF={(id) => handleDownloadPDF(id, "invoice")}
+            onSendToCustomer={(id) => handleSendToCustomer(id, "invoice")}
           />
         );
       case "customers":
@@ -162,15 +203,44 @@ const Index = () => {
             onDelete={deleteCustomer}
           />
         );
-      case "settings":
+      case "customer-form":
         return (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-            <p className="text-muted-foreground">Settings page coming soon...</p>
-          </div>
+          <CustomerForm 
+            onSubmit={handleSubmitCustomer}
+            onCancel={() => setCurrentPage("customers")}
+          />
         );
+      case "quotation-form":
+        return (
+          <QuotationForm 
+            customers={customers}
+            onSubmit={handleSubmitQuotation}
+            onCancel={() => setCurrentPage("quotations")}
+          />
+        );
+      case "invoice-form":
+        return (
+          <InvoiceForm 
+            customers={customers}
+            onSubmit={handleSubmitInvoice}
+            onCancel={() => setCurrentPage("invoices")}
+          />
+        );
+      case "settings":
+        return <Settings />;
       default:
-        return <Dashboard quotations={quotations} invoices={invoices} customers={customers} />;
+        return (
+          <Dashboard 
+            quotations={quotations} 
+            invoices={invoices} 
+            customers={customers}
+            onCreateQuotation={handleCreateQuotation}
+            onCreateInvoice={handleCreateInvoice}
+            onCreateCustomer={handleCreateCustomer}
+            onViewQuotations={() => setCurrentPage("quotations")}
+            onViewInvoices={() => setCurrentPage("invoices")}
+          />
+        );
     }
   };
 

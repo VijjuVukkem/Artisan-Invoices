@@ -35,9 +35,13 @@ interface InvoiceListProps {
   onCreateNew: () => void;
   onViewInvoice: (id: string) => void;
   onDelete: (invoiceId: string) => void;
+  onMarkAsPaid?: (invoiceId: string) => void;
+  onSendReminder?: (invoiceId: string) => void;
+  onDownloadPDF?: (id: string) => void;
+  onSendToCustomer?: (id: string) => void;
 }
 
-const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete }: InvoiceListProps) => {
+const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsPaid, onSendReminder, onDownloadPDF, onSendToCustomer }: InvoiceListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const mockInvoices = [
@@ -170,18 +174,18 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete }: Invoice
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onDownloadPDF?.(invoice.id)}>
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                           </DropdownMenuItem>
                           {(invoice.status === "draft" || invoice.status === "pending") && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSendReminder?.(invoice.id)}>
                               <Send className="mr-2 h-4 w-4" />
                               Send Reminder
                             </DropdownMenuItem>
                           )}
                           {invoice.status !== "paid" && (
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onMarkAsPaid?.(invoice.id)}>
                               <CheckCircle className="mr-2 h-4 w-4" />
                               Mark as Paid
                             </DropdownMenuItem>
