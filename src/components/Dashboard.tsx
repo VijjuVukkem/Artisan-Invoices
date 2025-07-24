@@ -12,53 +12,67 @@ import {
   CheckCircle
 } from "lucide-react";
 
-const Dashboard = () => {
+interface DashboardProps {
+  quotations: any[];
+  invoices: any[];
+  customers: any[];
+}
+
+const Dashboard = ({ quotations, invoices, customers }: DashboardProps) => {
+  const totalRevenue = invoices
+    .filter(i => i.status === "paid")
+    .reduce((sum, i) => sum + i.amount, 0);
+
   const stats = [
     {
       title: "Total Revenue",
-      value: "$24,567",
+      value: `$${totalRevenue.toLocaleString()}`,
       change: "+12.5%",
       icon: DollarSign,
       color: "text-success"
     },
     {
       title: "Active Quotations",
-      value: "8",
+      value: quotations.filter(q => q.status === "sent").length.toString(),
       change: "+3",
       icon: FileText,
       color: "text-primary"
     },
     {
       title: "Pending Invoices",
-      value: "12",
+      value: invoices.filter(i => i.status === "pending" || i.status === "sent").length.toString(),
       change: "-2",
       icon: Receipt,
       color: "text-warning"
     },
     {
       title: "Total Customers",
-      value: "47",
+      value: customers.length.toString(),
       change: "+5",
       icon: Users,
       color: "text-muted-foreground"
     }
   ];
 
-  const recentQuotations = [
-    { id: "QUO-001", customer: "Acme Corp", amount: "$2,450", status: "sent", date: "2024-01-15" },
-    { id: "QUO-002", customer: "TechStart Inc", amount: "$1,200", status: "draft", date: "2024-01-14" },
-    { id: "QUO-003", customer: "Global Solutions", amount: "$5,670", status: "accepted", date: "2024-01-13" },
-  ];
+  const recentQuotations = quotations.slice(0, 3).map(q => ({
+    id: q.quotation_number || q.id,
+    customer: q.customer?.name || "Unknown Customer",
+    amount: `$${q.amount.toLocaleString()}`,
+    status: q.status,
+    date: q.date
+  }));
 
-  const recentInvoices = [
-    { id: "INV-001", customer: "Acme Corp", amount: "$2,450", status: "paid", date: "2024-01-15" },
-    { id: "INV-002", customer: "Digital Agency", amount: "$3,200", status: "pending", date: "2024-01-14" },
-    { id: "INV-003", customer: "StartupXYZ", amount: "$890", status: "overdue", date: "2024-01-10" },
-  ];
+  const recentInvoices = invoices.slice(0, 3).map(i => ({
+    id: i.invoice_number || i.id,
+    customer: i.customer?.name || "Unknown Customer",
+    amount: `$${i.amount.toLocaleString()}`,
+    status: i.status,
+    date: i.date
+  }));
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      draft: { variant: "secondary", label: "Draft" },
+      save: { variant: "secondary", label: "Save" },
       sent: { variant: "outline", label: "Sent" },
       accepted: { variant: "default", label: "Accepted" },
       paid: { variant: "default", label: "Paid", className: "bg-success text-success-foreground" },
@@ -66,7 +80,7 @@ const Dashboard = () => {
       overdue: { variant: "destructive", label: "Overdue" }
     };
     
-    const config = variants[status] || variants.draft;
+    const config = variants[status] || variants.save;
     return (
       <Badge variant={config.variant} className={config.className}>
         {config.label}

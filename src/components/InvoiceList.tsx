@@ -31,60 +31,53 @@ import {
 } from "lucide-react";
 
 interface InvoiceListProps {
+  invoices: any[];
   onCreateNew: () => void;
   onViewInvoice: (id: string) => void;
+  onDelete: (invoiceId: string) => void;
 }
 
-const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
+const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete }: InvoiceListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const invoices = [
+  const mockInvoices = [
     {
       id: "INV-001",
-      customer: "Acme Corporation",
+      customer: { name: "Acme Corporation" },
       amount: 2450.00,
       status: "paid",
       date: "2024-01-15",
-      dueDate: "2024-02-15",
+      due_date: "2024-02-15",
       paidDate: "2024-01-20"
     },
     {
       id: "INV-002", 
-      customer: "Digital Agency Pro",
+      customer: { name: "Digital Agency Pro" },
       amount: 3200.00,
       status: "pending",
       date: "2024-01-14",
-      dueDate: "2024-02-14",
-      paidDate: null
-    },
-    {
-      id: "INV-003",
-      customer: "StartupXYZ",
-      amount: 890.00,
-      status: "overdue",
-      date: "2024-01-10",
-      dueDate: "2024-01-25",
-      paidDate: null
-    },
-    {
-      id: "INV-004",
-      customer: "TechStart Inc",
-      amount: 1200.00,
-      status: "draft",
-      date: "2024-01-16",
-      dueDate: "2024-02-16",
-      paidDate: null
-    },
-    {
-      id: "INV-005",
-      customer: "Global Solutions Ltd",
-      amount: 5670.00,
-      status: "sent",
-      date: "2024-01-13",
-      dueDate: "2024-02-13",
+      due_date: "2024-02-14",
       paidDate: null
     }
   ];
+
+  const displayInvoices = invoices.length > 0 ? invoices.map(i => ({
+    id: i.invoice_number || i.id,
+    customer: i.customer?.name || "Unknown Customer",
+    amount: i.amount,
+    status: i.status,
+    date: i.date,
+    dueDate: i.due_date,
+    paidDate: null
+  })) : mockInvoices.map(i => ({
+    id: i.id,
+    customer: i.customer.name,
+    amount: i.amount,
+    status: i.status,
+    date: i.date,
+    dueDate: i.due_date,
+    paidDate: i.paidDate
+  }));
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
@@ -105,7 +98,7 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
     );
   };
 
-  const filteredInvoices = invoices.filter(invoice =>
+  const filteredInvoices = displayInvoices.filter(invoice =>
     invoice.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -193,7 +186,7 @@ const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
                               Mark as Paid
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={() => onDelete(invoice.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>

@@ -32,75 +32,42 @@ import {
 } from "lucide-react";
 
 interface CustomerListProps {
+  customers: any[];
   onCreateNew: () => void;
   onViewCustomer: (id: string) => void;
+  onDelete: (customerId: string) => void;
 }
 
-const CustomerList = ({ onCreateNew, onViewCustomer }: CustomerListProps) => {
+const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: CustomerListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const customers = [
+  const mockCustomers = [
     {
       id: "CUST-001",
       name: "Acme Corporation",
       email: "contact@acme.com",
       phone: "+1 (555) 123-4567",
-      address: "123 Business St, New York, NY 10001",
+      company: "Acme Corp",
       type: "Business",
       totalQuotations: 3,
       totalInvoices: 2,
       totalAmount: 8950.00,
       lastActivity: "2024-01-15"
-    },
-    {
-      id: "CUST-002",
-      name: "TechStart Inc",
-      email: "hello@techstart.com",
-      phone: "+1 (555) 234-5678",
-      address: "456 Startup Ave, San Francisco, CA 94102",
-      type: "Business",
-      totalQuotations: 2,
-      totalInvoices: 1,
-      totalAmount: 2400.00,
-      lastActivity: "2024-01-16"
-    },
-    {
-      id: "CUST-003",
-      name: "Global Solutions Ltd",
-      email: "info@globalsolutions.com",
-      phone: "+1 (555) 345-6789",
-      address: "789 Enterprise Blvd, Austin, TX 73301",
-      type: "Enterprise",
-      totalQuotations: 1,
-      totalInvoices: 1,
-      totalAmount: 11340.00,
-      lastActivity: "2024-01-13"
-    },
-    {
-      id: "CUST-004",
-      name: "Digital Agency Pro",
-      email: "team@digitalagency.com",
-      phone: "+1 (555) 456-7890",
-      address: "321 Creative Way, Los Angeles, CA 90210",
-      type: "Business",
-      totalQuotations: 0,
-      totalInvoices: 1,
-      totalAmount: 3200.00,
-      lastActivity: "2024-01-14"
-    },
-    {
-      id: "CUST-005",
-      name: "StartupXYZ",
-      email: "founders@startupxyz.com",
-      phone: "+1 (555) 567-8901",
-      address: "654 Innovation Dr, Seattle, WA 98101",
-      type: "Startup",
-      totalQuotations: 1,
-      totalInvoices: 1,
-      totalAmount: 1780.00,
-      lastActivity: "2024-01-12"
     }
   ];
+
+  const displayCustomers = customers.length > 0 ? customers.map(c => ({
+    id: c.id,
+    name: c.name,
+    email: c.email || "No email",
+    phone: c.phone || "No phone",
+    address: c.address || "No address",
+    type: c.company ? "Business" : "Individual",
+    totalQuotations: 0,
+    totalInvoices: 0,
+    totalAmount: 0,
+    lastActivity: c.created_at?.split('T')[0] || "N/A"
+  })) : mockCustomers;
 
   const getTypeBadge = (type: string) => {
     const variants: Record<string, any> = {
@@ -118,7 +85,7 @@ const CustomerList = ({ onCreateNew, onViewCustomer }: CustomerListProps) => {
     );
   };
 
-  const filteredCustomers = customers.filter(customer =>
+  const filteredCustomers = displayCustomers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -229,7 +196,7 @@ const CustomerList = ({ onCreateNew, onViewCustomer }: CustomerListProps) => {
                             <Mail className="mr-2 h-4 w-4" />
                             Send Email
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={() => onDelete(customer.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>

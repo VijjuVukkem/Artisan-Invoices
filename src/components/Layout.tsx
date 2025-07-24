@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   FileText, 
   Receipt, 
@@ -9,7 +10,8 @@ import {
   Settings,
   Plus,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 
 interface LayoutProps {
@@ -20,6 +22,11 @@ interface LayoutProps {
 
 const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   const navigation = [
     { name: "Dashboard", icon: BarChart3, key: "dashboard" },
@@ -70,6 +77,17 @@ const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
               {item.name}
             </Button>
           ))}
+          
+          <div className="border-t pt-4 mt-4">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-muted-foreground hover:text-destructive"
+              onClick={handleSignOut}
+            >
+              <LogOut className="mr-3 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </nav>
       </div>
 

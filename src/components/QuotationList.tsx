@@ -29,55 +29,58 @@ import {
 } from "lucide-react";
 
 interface QuotationListProps {
+  quotations: any[];
   onCreateNew: () => void;
   onViewQuotation: (id: string) => void;
+  onQuotationToInvoice: (quotationId: string) => void;
+  onUpdateStatus: (quotationId: string, status: string) => void;
+  onDelete: (quotationId: string) => void;
 }
 
-const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => {
+const QuotationList = ({ 
+  quotations, 
+  onCreateNew, 
+  onViewQuotation, 
+  onQuotationToInvoice, 
+  onUpdateStatus, 
+  onDelete 
+}: QuotationListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const quotations = [
+  const mockQuotations = [
     {
       id: "QUO-001",
-      customer: "Acme Corporation",
+      customer: { name: "Acme Corporation" },
       amount: 2450.00,
       status: "sent",
       date: "2024-01-15",
-      validUntil: "2024-02-15"
+      valid_until: "2024-02-15"
     },
     {
       id: "QUO-002", 
-      customer: "TechStart Inc",
+      customer: { name: "TechStart Inc" },
       amount: 1200.00,
       status: "save",
       date: "2024-01-14",
-      validUntil: "2024-02-14"
-    },
-    {
-      id: "QUO-003",
-      customer: "Global Solutions Ltd",
-      amount: 5670.00,
-      status: "accepted",
-      date: "2024-01-13",
-      validUntil: "2024-02-13"
-    },
-    {
-      id: "QUO-004",
-      customer: "Digital Agency Pro",
-      amount: 3200.00,
-      status: "expired",
-      date: "2024-01-10",
-      validUntil: "2024-01-25"
-    },
-    {
-      id: "QUO-005",
-      customer: "StartupXYZ",
-      amount: 890.00,
-      status: "rejected",
-      date: "2024-01-12",
-      validUntil: "2024-02-12"
+      valid_until: "2024-02-14"
     }
   ];
+
+  const displayQuotations = quotations.length > 0 ? quotations.map(q => ({
+    id: q.id,
+    customer: q.customer?.name || 'Unknown Customer',
+    amount: q.amount,
+    status: q.status,
+    date: q.date,
+    validUntil: q.valid_until
+  })) : mockQuotations.map(q => ({
+    id: q.id,
+    customer: q.customer.name,
+    amount: q.amount,
+    status: q.status,
+    date: q.date,
+    validUntil: q.valid_until
+  }));
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
@@ -96,7 +99,7 @@ const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => 
     );
   };
 
-  const filteredQuotations = quotations.filter(quotation =>
+  const filteredQuotations = displayQuotations.filter(quotation =>
     quotation.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
     quotation.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -168,17 +171,17 @@ const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => 
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => console.log('Quotation to Invoice clicked')}>
+                          <DropdownMenuItem onClick={() => onQuotationToInvoice(quotation.id)}>
                             <FileText className="mr-2 h-4 w-4" />
                             Quotation to Invoice
                           </DropdownMenuItem>
                           {quotation.status === "save" && (
-                            <DropdownMenuItem onClick={() => console.log('Send to Customer clicked')}>
+                            <DropdownMenuItem onClick={() => onUpdateStatus(quotation.id, "sent")}>
                               <Send className="mr-2 h-4 w-4" />
                               Send to Customer
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem className="text-destructive" onClick={() => console.log('Delete clicked')}>
+                          <DropdownMenuItem className="text-destructive" onClick={() => onDelete(quotation.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
