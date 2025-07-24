@@ -49,7 +49,7 @@ const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => 
       id: "QUO-002", 
       customer: "TechStart Inc",
       amount: 1200.00,
-      status: "draft",
+      status: "save",
       date: "2024-01-14",
       validUntil: "2024-02-14"
     },
@@ -81,7 +81,7 @@ const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => 
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      draft: { variant: "secondary", label: "Draft" },
+      save: { variant: "secondary", label: "Save" },
       sent: { variant: "outline", label: "Sent" },
       accepted: { variant: "default", label: "Accepted", className: "bg-success text-success-foreground" },
       rejected: { variant: "destructive", label: "Rejected" },
@@ -160,27 +160,25 @@ const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => 
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log('Edit clicked')}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log('Download PDF clicked')}>
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                           </DropdownMenuItem>
-                          {quotation.status === "draft" && (
-                            <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => console.log('Quotation to Invoice clicked')}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Quotation to Invoice
+                          </DropdownMenuItem>
+                          {quotation.status === "save" && (
+                            <DropdownMenuItem onClick={() => console.log('Send to Customer clicked')}>
                               <Send className="mr-2 h-4 w-4" />
                               Send to Customer
                             </DropdownMenuItem>
                           )}
-                          {quotation.status === "accepted" && (
-                            <DropdownMenuItem>
-                              <FileText className="mr-2 h-4 w-4" />
-                              Convert to Invoice
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={() => console.log('Delete clicked')}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
@@ -225,9 +223,9 @@ const QuotationList = ({ onCreateNew, onViewQuotation }: QuotationListProps) => 
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-muted-foreground">
-              {filteredQuotations.filter(q => q.status === "draft").length}
+              {filteredQuotations.filter(q => q.status === "save").length}
             </div>
-            <p className="text-xs text-muted-foreground">Draft</p>
+            <p className="text-xs text-muted-foreground">Save</p>
           </CardContent>
         </Card>
       </div>
