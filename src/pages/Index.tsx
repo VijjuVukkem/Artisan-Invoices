@@ -25,6 +25,20 @@ const Index = () => {
   } = useSupabaseData();
 
   const handlePageChange = (page: string) => {
+    // Handle direct action pages
+    if (page === "new-quotation") {
+      handleCreateQuotation();
+      return;
+    }
+    if (page === "new-invoice") {
+      handleCreateInvoice();
+      return;
+    }
+    if (page === "new-customer") {
+      handleCreateCustomer();
+      return;
+    }
+    
     setCurrentPage(page);
   };
 
