@@ -1,0 +1,265 @@
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { 
+  Search, 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Receipt, 
+  Trash2,
+  Download,
+  Send,
+  CheckCircle,
+  Clock
+} from "lucide-react";
+
+interface InvoiceListProps {
+  onCreateNew: () => void;
+  onViewInvoice: (id: string) => void;
+}
+
+const InvoiceList = ({ onCreateNew, onViewInvoice }: InvoiceListProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const invoices = [
+    {
+      id: "INV-001",
+      customer: "Acme Corporation",
+      amount: 2450.00,
+      status: "paid",
+      date: "2024-01-15",
+      dueDate: "2024-02-15",
+      paidDate: "2024-01-20"
+    },
+    {
+      id: "INV-002", 
+      customer: "Digital Agency Pro",
+      amount: 3200.00,
+      status: "pending",
+      date: "2024-01-14",
+      dueDate: "2024-02-14",
+      paidDate: null
+    },
+    {
+      id: "INV-003",
+      customer: "StartupXYZ",
+      amount: 890.00,
+      status: "overdue",
+      date: "2024-01-10",
+      dueDate: "2024-01-25",
+      paidDate: null
+    },
+    {
+      id: "INV-004",
+      customer: "TechStart Inc",
+      amount: 1200.00,
+      status: "draft",
+      date: "2024-01-16",
+      dueDate: "2024-02-16",
+      paidDate: null
+    },
+    {
+      id: "INV-005",
+      customer: "Global Solutions Ltd",
+      amount: 5670.00,
+      status: "sent",
+      date: "2024-01-13",
+      dueDate: "2024-02-13",
+      paidDate: null
+    }
+  ];
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, any> = {
+      draft: { variant: "secondary", label: "Draft", icon: Edit },
+      sent: { variant: "outline", label: "Sent", icon: Send },
+      pending: { variant: "secondary", label: "Pending", icon: Clock },
+      paid: { variant: "default", label: "Paid", className: "bg-success text-success-foreground", icon: CheckCircle },
+      overdue: { variant: "destructive", label: "Overdue", icon: Clock }
+    };
+    
+    const config = variants[status] || variants.draft;
+    const Icon = config.icon;
+    return (
+      <Badge variant={config.variant} className={config.className}>
+        <Icon className="mr-1 h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const filteredInvoices = invoices.filter(invoice =>
+    invoice.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    invoice.id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header with Search */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search invoices..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button onClick={onCreateNew}>
+          <Receipt className="mr-2 h-4 w-4" />
+          New Invoice
+        </Button>
+      </div>
+
+      {/* Invoices Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Invoices</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Invoice ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Paid Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">{invoice.id}</TableCell>
+                    <TableCell>{invoice.customer}</TableCell>
+                    <TableCell>${invoice.amount.toLocaleString()}</TableCell>
+                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                    <TableCell>{invoice.date}</TableCell>
+                    <TableCell className={invoice.status === "overdue" ? "text-destructive font-medium" : ""}>
+                      {invoice.dueDate}
+                    </TableCell>
+                    <TableCell>{invoice.paidDate || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => onViewInvoice(invoice.id)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download PDF
+                          </DropdownMenuItem>
+                          {(invoice.status === "draft" || invoice.status === "pending") && (
+                            <DropdownMenuItem>
+                              <Send className="mr-2 h-4 w-4" />
+                              Send Reminder
+                            </DropdownMenuItem>
+                          )}
+                          {invoice.status !== "paid" && (
+                            <DropdownMenuItem>
+                              <CheckCircle className="mr-2 h-4 w-4" />
+                              Mark as Paid
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold">{filteredInvoices.length}</div>
+            <p className="text-xs text-muted-foreground">Total Invoices</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-success">
+              ${filteredInvoices
+                .filter(i => i.status === "paid")
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Paid Amount</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-primary">
+              ${filteredInvoices
+                .filter(i => i.status === "pending" || i.status === "sent")
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Pending Amount</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-destructive">
+              ${filteredInvoices
+                .filter(i => i.status === "overdue")
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground">Overdue Amount</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-muted-foreground">
+              {filteredInvoices.filter(i => i.status === "draft").length}
+            </div>
+            <p className="text-xs text-muted-foreground">Draft</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceList;
