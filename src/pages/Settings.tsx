@@ -36,14 +36,18 @@ const Settings = () => {
     setInvoiceSettings(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSaveCompany = () => {
+  const handleSaveCompany = async () => {
+    // In a real app, this would save to database
+    localStorage.setItem('companySettings', JSON.stringify(companySettings));
     toast({
       title: "Company Settings Saved",
       description: "Your company information has been updated."
     });
   };
 
-  const handleSaveInvoice = () => {
+  const handleSaveInvoice = async () => {
+    // In a real app, this would save to database
+    localStorage.setItem('invoiceSettings', JSON.stringify(invoiceSettings));
     toast({
       title: "Invoice Settings Saved",
       description: "Your invoice settings have been updated."

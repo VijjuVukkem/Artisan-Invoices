@@ -66,6 +66,15 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          {/* Logo and Brand Section */}
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <img 
+              src="/logo.png" 
+              alt="Company Logo" 
+              className="h-12 w-12 object-contain"
+            />
+            <h1 className="text-3xl font-bold text-primary tracking-wide">ARTISAN</h1>
+          </div>
           <CardTitle className="text-2xl font-bold">
             {isLogin ? "Welcome Back" : "Create Account"}
           </CardTitle>

@@ -85,14 +85,14 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
-      draft: { variant: "secondary", label: "Draft", icon: Edit },
+      save: { variant: "secondary", label: "Save", icon: Edit },
       sent: { variant: "outline", label: "Sent", icon: Send },
       pending: { variant: "secondary", label: "Pending", icon: Clock },
       paid: { variant: "default", label: "Paid", className: "bg-success text-success-foreground", icon: CheckCircle },
       overdue: { variant: "destructive", label: "Overdue", icon: Clock }
     };
     
-    const config = variants[status] || variants.draft;
+    const config = variants[status] || variants.save;
     const Icon = config.icon;
     return (
       <Badge variant={config.variant} className={config.className}>
@@ -151,7 +151,7 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
                   <TableRow key={invoice.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">{invoice.id}</TableCell>
                     <TableCell>{invoice.customer}</TableCell>
-                    <TableCell>${invoice.amount.toLocaleString()}</TableCell>
+                    <TableCell>₹{invoice.amount.toLocaleString()}</TableCell>
                     <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                     <TableCell>{invoice.date}</TableCell>
                     <TableCell className={invoice.status === "overdue" ? "text-destructive font-medium" : ""}>
@@ -178,7 +178,7 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
                           </DropdownMenuItem>
-                          {(invoice.status === "draft" || invoice.status === "pending") && (
+                          {(invoice.status === "save" || invoice.status === "pending") && (
                             <DropdownMenuItem onClick={() => onSendReminder?.(invoice.id)}>
                               <Send className="mr-2 h-4 w-4" />
                               Send Reminder
@@ -215,43 +215,43 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-success">
-              ${filteredInvoices
-                .filter(i => i.status === "paid")
-                .reduce((sum, i) => sum + i.amount, 0)
-                .toLocaleString()}
-            </div>
+             <div className="text-2xl font-bold text-success">
+               ₹{filteredInvoices
+                 .filter(i => i.status === "paid")
+                 .reduce((sum, i) => sum + i.amount, 0)
+                 .toLocaleString()}
+             </div>
             <p className="text-xs text-muted-foreground">Paid Amount</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-primary">
-              ${filteredInvoices
-                .filter(i => i.status === "pending" || i.status === "sent")
-                .reduce((sum, i) => sum + i.amount, 0)
-                .toLocaleString()}
-            </div>
+             <div className="text-2xl font-bold text-primary">
+               ₹{filteredInvoices
+                 .filter(i => i.status === "pending" || i.status === "sent")
+                 .reduce((sum, i) => sum + i.amount, 0)
+                 .toLocaleString()}
+             </div>
             <p className="text-xs text-muted-foreground">Pending Amount</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-destructive">
-              ${filteredInvoices
-                .filter(i => i.status === "overdue")
-                .reduce((sum, i) => sum + i.amount, 0)
-                .toLocaleString()}
-            </div>
+             <div className="text-2xl font-bold text-destructive">
+               ₹{filteredInvoices
+                 .filter(i => i.status === "overdue")
+                 .reduce((sum, i) => sum + i.amount, 0)
+                 .toLocaleString()}
+             </div>
             <p className="text-xs text-muted-foreground">Overdue Amount</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-muted-foreground">
-              {filteredInvoices.filter(i => i.status === "draft").length}
+              {filteredInvoices.filter(i => i.status === "save").length}
             </div>
-            <p className="text-xs text-muted-foreground">Draft</p>
+            <p className="text-xs text-muted-foreground">Save</p>
           </CardContent>
         </Card>
       </div>

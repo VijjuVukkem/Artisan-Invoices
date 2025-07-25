@@ -116,8 +116,14 @@ export const useSupabaseData = () => {
   const addQuotation = async (quotationData: Omit<Quotation, "id" | "quotation_number">) => {
     if (!user) return null;
 
-    // Generate quotation number
-    const quotationNumber = `QUO-${Date.now().toString().slice(-6)}`;
+    // Get the current count of quotations for this user
+    const { count } = await supabase
+      .from("quotations")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    // Generate quotation number starting from 001
+    const quotationNumber = `QUO-${String((count || 0) + 1).padStart(3, '0')}`;
 
     const { data, error } = await supabase
       .from("quotations")
@@ -146,8 +152,14 @@ export const useSupabaseData = () => {
   const addInvoice = async (invoiceData: Omit<Invoice, "id" | "invoice_number">) => {
     if (!user) return null;
 
-    // Generate invoice number
-    const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+    // Get the current count of invoices for this user
+    const { count } = await supabase
+      .from("invoices")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    // Generate invoice number starting from 001
+    const invoiceNumber = `INV-${String((count || 0) + 1).padStart(3, '0')}`;
 
     const { data, error } = await supabase
       .from("invoices")
@@ -177,11 +189,18 @@ export const useSupabaseData = () => {
     const quotation = quotations.find(q => q.id === quotationId);
     if (!quotation) return null;
 
+    // Check if invoice already exists for this quotation
+    const existingInvoice = invoices.find(i => i.quotation_id === quotationId);
+    if (existingInvoice) {
+      console.log("Invoice already exists for this quotation");
+      return existingInvoice;
+    }
+
     const invoiceData = {
       customer_id: quotation.customer_id,
       quotation_id: quotation.id,
       amount: quotation.amount,
-      status: "draft",
+      status: "save",
       date: new Date().toISOString().split('T')[0],
       due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
       items: quotation.items,
@@ -252,6 +271,28 @@ export const useSupabaseData = () => {
     return false;
   };
 
+  const updateInvoiceStatus = async (invoiceId: string, status: string) => {
+    const { data, error } = await supabase
+      .from("invoices")
+      .update({ status })
+      .eq("id", invoiceId)
+      .select(`
+        *,
+        customer:customers(*)
+      `)
+      .single();
+
+    if (!error && data) {
+      const processedData = {
+        ...data,
+        items: Array.isArray(data.items) ? data.items : []
+      };
+      setInvoices(prev => prev.map(i => i.id === invoiceId ? processedData : i));
+      return processedData;
+    }
+    return null;
+  };
+
   return {
     customers,
     quotations,
@@ -262,6 +303,7 @@ export const useSupabaseData = () => {
     addInvoice,
     convertQuotationToInvoice,
     updateQuotationStatus,
+    updateInvoiceStatus,
     deleteCustomer,
     deleteQuotation,
     deleteInvoice,

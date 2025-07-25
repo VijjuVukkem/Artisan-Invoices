@@ -151,7 +151,7 @@ const QuotationList = ({
                   <TableRow key={quotation.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">{quotation.id}</TableCell>
                     <TableCell>{quotation.customer}</TableCell>
-                    <TableCell>${quotation.amount.toLocaleString()}</TableCell>
+                    <TableCell>₹{quotation.amount.toLocaleString()}</TableCell>
                     <TableCell>{getStatusBadge(quotation.status)}</TableCell>
                     <TableCell>{quotation.date}</TableCell>
                     <TableCell>{quotation.validUntil}</TableCell>
@@ -210,12 +210,12 @@ const QuotationList = ({
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-success">
-              ${filteredQuotations
-                .filter(q => q.status === "accepted")
-                .reduce((sum, q) => sum + q.amount, 0)
-                .toLocaleString()}
-            </div>
+             <div className="text-2xl font-bold text-success">
+               ₹{filteredQuotations
+                 .filter(q => q.status === "accepted")
+                 .reduce((sum, q) => sum + q.amount, 0)
+                 .toLocaleString()}
+             </div>
             <p className="text-xs text-muted-foreground">Accepted Value</p>
           </CardContent>
         </Card>

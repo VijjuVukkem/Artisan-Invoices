@@ -23,6 +23,7 @@ const Index = () => {
     addInvoice,
     convertQuotationToInvoice,
     updateQuotationStatus,
+    updateInvoiceStatus,
     deleteCustomer,
     deleteQuotation,
     deleteInvoice
@@ -74,11 +75,34 @@ const Index = () => {
     setCurrentPage("customer-form");
   };
 
-  const handleViewItem = (id: string) => {
-    toast({
-      title: "View Details",
-      description: `Viewing details for item ${id}. Feature coming soon!`
-    });
+  const handleViewQuotation = (id: string) => {
+    const quotation = quotations.find(q => q.id === id || q.quotation_number === id);
+    if (quotation) {
+      toast({
+        title: "Quotation Details",
+        description: `${quotation.quotation_number}: ₹${quotation.amount.toLocaleString()} for ${quotation.customer?.name || 'Unknown Customer'}`
+      });
+    }
+  };
+
+  const handleViewInvoice = (id: string) => {
+    const invoice = invoices.find(i => i.id === id || i.invoice_number === id);
+    if (invoice) {
+      toast({
+        title: "Invoice Details", 
+        description: `${invoice.invoice_number}: ₹${invoice.amount.toLocaleString()} for ${invoice.customer?.name || 'Unknown Customer'}`
+      });
+    }
+  };
+
+  const handleViewCustomer = (id: string) => {
+    const customer = customers.find(c => c.id === id);
+    if (customer) {
+      toast({
+        title: "Customer Details",
+        description: `${customer.name} - ${customer.email || 'No email'}`
+      });
+    }
   };
 
   const handleSubmitCustomer = async (customerData: any) => {
@@ -115,11 +139,13 @@ const Index = () => {
   };
 
   const handleMarkAsPaid = async (invoiceId: string) => {
-    // This would need to be implemented in useSupabaseData
-    toast({
-      title: "Invoice marked as paid",
-      description: "The invoice has been marked as paid."
-    });
+    const updatedInvoice = await updateInvoiceStatus(invoiceId, "paid");
+    if (updatedInvoice) {
+      toast({
+        title: "Invoice marked as paid",
+        description: "The invoice has been marked as paid."
+      });
+    }
   };
 
   const handleSendReminder = (invoiceId: string) => {
@@ -130,17 +156,36 @@ const Index = () => {
   };
 
   const handleDownloadPDF = (id: string, type: "quotation" | "invoice") => {
-    toast({
-      title: "PDF Downloaded",
-      description: `${type.charAt(0).toUpperCase() + type.slice(1)} PDF has been downloaded.`
-    });
+    const item = type === "quotation" 
+      ? quotations.find(q => q.id === id || q.quotation_number === id)
+      : invoices.find(i => i.id === id || i.invoice_number === id);
+    
+    if (item) {
+      toast({
+        title: "PDF Downloaded",
+        description: `${type.charAt(0).toUpperCase() + type.slice(1)} ${type === "quotation" ? (item as any).quotation_number : (item as any).invoice_number} PDF has been downloaded.`
+      });
+    }
   };
 
-  const handleSendToCustomer = (id: string, type: "quotation" | "invoice") => {
-    toast({
-      title: `${type.charAt(0).toUpperCase() + type.slice(1)} sent`,
-      description: `${type.charAt(0).toUpperCase() + type.slice(1)} has been sent to the customer.`
-    });
+  const handleSendToCustomer = async (id: string, type: "quotation" | "invoice") => {
+    if (type === "quotation") {
+      const updatedQuotation = await updateQuotationStatus(id, "sent");
+      if (updatedQuotation) {
+        toast({
+          title: "Quotation sent",
+          description: `Quotation ${updatedQuotation.quotation_number} has been sent to the customer.`
+        });
+      }
+    } else {
+      const updatedInvoice = await updateInvoiceStatus(id, "sent");
+      if (updatedInvoice) {
+        toast({
+          title: "Invoice sent",
+          description: `Invoice ${updatedInvoice.invoice_number} has been sent to the customer.`
+        });
+      }
+    }
   };
 
   const handleQuotationToInvoice = async (quotationId: string) => {
@@ -173,7 +218,7 @@ const Index = () => {
           <QuotationList 
             quotations={quotations}
             onCreateNew={handleCreateQuotation}
-            onViewQuotation={handleViewItem}
+            onViewQuotation={handleViewQuotation}
             onQuotationToInvoice={handleQuotationToInvoice}
             onUpdateStatus={updateQuotationStatus}
             onDelete={deleteQuotation}
@@ -186,7 +231,7 @@ const Index = () => {
           <InvoiceList 
             invoices={invoices}
             onCreateNew={handleCreateInvoice}
-            onViewInvoice={handleViewItem}
+            onViewInvoice={handleViewInvoice}
             onDelete={deleteInvoice}
             onMarkAsPaid={handleMarkAsPaid}
             onSendReminder={handleSendReminder}
@@ -199,7 +244,7 @@ const Index = () => {
           <CustomerList 
             customers={customers}
             onCreateNew={handleCreateCustomer}
-            onViewCustomer={handleViewItem}
+            onViewCustomer={handleViewCustomer}
             onDelete={deleteCustomer}
           />
         );
