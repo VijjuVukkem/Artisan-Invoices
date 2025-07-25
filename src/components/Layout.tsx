@@ -51,7 +51,13 @@ const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between p-6 border-b">
-          <h1 className="text-xl font-bold text-primary">InvoiceFlow</h1>
+          {/* Left side: Logo + Title */}
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Artisan Apparels" width="50" height="auto" />
+            <h1 className="text-3xl font-bold text-primary">Artisan</h1>
+          </div>
+
+          {/* Mobile close button */}
           <Button
             variant="ghost"
             size="sm"
