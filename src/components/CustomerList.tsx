@@ -28,11 +28,23 @@ import {
   Phone,
   FileText,
   Receipt,
-  Building
 } from "lucide-react";
 
+interface Customer {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  company?: string;
+  totalQuotations?: number;
+  totalInvoices?: number;
+  totalAmount?: number;
+  created_at?: string;
+}
+
 interface CustomerListProps {
-  customers: any[];
+  customers: Customer[];
   onCreateNew: () => void;
   onViewCustomer: (id: string) => void;
   onDelete: (customerId: string) => void;
@@ -41,33 +53,18 @@ interface CustomerListProps {
 const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: CustomerListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const mockCustomers = [
-    {
-      id: "CUST-001",
-      name: "Acme Corporation",
-      email: "contact@acme.com",
-      phone: "+1 (555) 123-4567",
-      company: "Acme Corp",
-      type: "Business",
-      totalQuotations: 3,
-      totalInvoices: 2,
-      totalAmount: 8950.00,
-      lastActivity: "2024-01-15"
-    }
-  ];
-
-  const displayCustomers = customers.length > 0 ? customers.map(c => ({
+  const displayCustomers = customers.map(c => ({
     id: c.id,
     name: c.name,
     email: c.email || "No email",
     phone: c.phone || "No phone",
     address: c.address || "No address",
     type: c.company ? "Business" : "Individual",
-    totalQuotations: 0,
-    totalInvoices: 0,
-    totalAmount: 0,
+    totalQuotations: c.totalQuotations || 0,
+    totalInvoices: c.totalInvoices || 0,
+    totalAmount: c.totalAmount || 0,
     lastActivity: c.created_at?.split('T')[0] || "N/A"
-  })) : mockCustomers;
+  }));
 
   const getTypeBadge = (type: string) => {
     const variants: Record<string, any> = {
@@ -76,7 +73,7 @@ const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: Cust
       Startup: { variant: "secondary", label: "Startup" },
       Individual: { variant: "outline", label: "Individual" }
     };
-    
+
     const config = variants[type] || variants.Business;
     return (
       <Badge variant={config.variant} className={config.className}>
@@ -116,7 +113,7 @@ const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: Cust
           <CardTitle>All Customers</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -131,80 +128,88 @@ const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: Cust
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id} className="hover:bg-muted/50">
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{customer.name}</div>
-                        <div className="text-sm text-muted-foreground">{customer.id}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center text-sm">
-                          <Mail className="mr-1 h-3 w-3" />
-                          {customer.email}
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Phone className="mr-1 h-3 w-3" />
-                          {customer.phone}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getTypeBadge(customer.type)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <FileText className="mr-1 h-4 w-4 text-muted-foreground" />
-                        {customer.totalQuotations}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Receipt className="mr-1 h-4 w-4 text-muted-foreground" />
-                        {customer.totalInvoices}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      ${customer.totalAmount.toLocaleString()}
-                    </TableCell>
-                    <TableCell>{customer.lastActivity}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => onViewCustomer(customer.id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Customer
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Create Quotation
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Receipt className="mr-2 h-4 w-4" />
-                            Create Invoice
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Mail className="mr-2 h-4 w-4" />
-                            Send Email
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => onDelete(customer.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {filteredCustomers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                      No customers found.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredCustomers.map((customer) => (
+                    <TableRow key={customer.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium">{customer.name}</div>
+                          <div className="text-sm text-muted-foreground">{customer.id}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm">
+                            <Mail className="mr-1 h-3 w-3" />
+                            {customer.email}
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Phone className="mr-1 h-3 w-3" />
+                            {customer.phone}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getTypeBadge(customer.type)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <FileText className="mr-1 h-4 w-4 text-muted-foreground" />
+                          {customer.totalQuotations}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <Receipt className="mr-1 h-4 w-4 text-muted-foreground" />
+                          {customer.totalInvoices}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        ${customer.totalAmount.toLocaleString()}
+                      </TableCell>
+                      <TableCell>{customer.lastActivity}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => onViewCustomer(customer.id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Customer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <FileText className="mr-2 h-4 w-4" />
+                              Create Quotation
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Receipt className="mr-2 h-4 w-4" />
+                              Create Invoice
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Mail className="mr-2 h-4 w-4" />
+                              Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(customer.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -240,7 +245,9 @@ const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: Cust
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-muted-foreground">
-              {(filteredCustomers.reduce((sum, c) => sum + c.totalAmount, 0) / filteredCustomers.length).toFixed(0)}
+              {filteredCustomers.length > 0
+                ? (filteredCustomers.reduce((sum, c) => sum + c.totalAmount, 0) / filteredCustomers.length).toFixed(0)
+                : "0"}
             </div>
             <p className="text-xs text-muted-foreground">Avg. Customer Value</p>
           </CardContent>

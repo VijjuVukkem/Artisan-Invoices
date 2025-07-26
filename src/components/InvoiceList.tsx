@@ -41,46 +41,26 @@ interface InvoiceListProps {
   onSendToCustomer?: (id: string) => void;
 }
 
-const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsPaid, onSendReminder, onDownloadPDF, onSendToCustomer }: InvoiceListProps) => {
+const InvoiceList = ({
+  invoices,
+  onCreateNew,
+  onViewInvoice,
+  onDelete,
+  onMarkAsPaid,
+  onSendReminder,
+  onDownloadPDF,
+  onSendToCustomer
+}: InvoiceListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const mockInvoices = [
-    {
-      id: "INV-001",
-      customer: { name: "Acme Corporation" },
-      amount: 2450.00,
-      status: "paid",
-      date: "2024-01-15",
-      due_date: "2024-02-15",
-      paidDate: "2024-01-20"
-    },
-    {
-      id: "INV-002", 
-      customer: { name: "Digital Agency Pro" },
-      amount: 3200.00,
-      status: "pending",
-      date: "2024-01-14",
-      due_date: "2024-02-14",
-      paidDate: null
-    }
-  ];
-
-  const displayInvoices = invoices.length > 0 ? invoices.map(i => ({
+  const displayInvoices = invoices.map(i => ({
     id: i.invoice_number || i.id,
     customer: i.customer?.name || "Unknown Customer",
     amount: i.amount,
     status: i.status,
     date: i.date,
     dueDate: i.due_date,
-    paidDate: null
-  })) : mockInvoices.map(i => ({
-    id: i.id,
-    customer: i.customer.name,
-    amount: i.amount,
-    status: i.status,
-    date: i.date,
-    dueDate: i.due_date,
-    paidDate: i.paidDate
+    paidDate: i.paidDate || "-"
   }));
 
   const getStatusBadge = (status: string) => {
@@ -91,7 +71,7 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
       paid: { variant: "default", label: "Paid", className: "bg-success text-success-foreground", icon: CheckCircle },
       overdue: { variant: "destructive", label: "Overdue", icon: Clock }
     };
-    
+
     const config = variants[status] || variants.save;
     const Icon = config.icon;
     return (
@@ -132,7 +112,7 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
           <CardTitle>All Invoices</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -147,58 +127,66 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.customer}</TableCell>
-                    <TableCell>₹{invoice.amount.toLocaleString()}</TableCell>
-                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                    <TableCell>{invoice.date}</TableCell>
-                    <TableCell className={invoice.status === "overdue" ? "text-destructive font-medium" : ""}>
-                      {invoice.dueDate}
-                    </TableCell>
-                    <TableCell>{invoice.paidDate || "-"}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => onViewInvoice(invoice.id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onDownloadPDF?.(invoice.id)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download PDF
-                          </DropdownMenuItem>
-                          {(invoice.status === "save" || invoice.status === "pending") && (
-                            <DropdownMenuItem onClick={() => onSendReminder?.(invoice.id)}>
-                              <Send className="mr-2 h-4 w-4" />
-                              Send Reminder
-                            </DropdownMenuItem>
-                          )}
-                          {invoice.status !== "paid" && (
-                            <DropdownMenuItem onClick={() => onMarkAsPaid?.(invoice.id)}>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Mark as Paid
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem className="text-destructive" onClick={() => onDelete(invoice.id)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {filteredInvoices.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                      No invoices found.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredInvoices.map((invoice) => (
+                    <TableRow key={invoice.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{invoice.id}</TableCell>
+                      <TableCell>{invoice.customer}</TableCell>
+                      <TableCell>₹{invoice.amount.toLocaleString()}</TableCell>
+                      <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                      <TableCell>{invoice.date}</TableCell>
+                      <TableCell className={invoice.status === "overdue" ? "text-destructive font-medium" : ""}>
+                        {invoice.dueDate}
+                      </TableCell>
+                      <TableCell>{invoice.paidDate}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => onViewInvoice(invoice.id)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onDownloadPDF?.(invoice.id)}>
+                              <Download className="mr-2 h-4 w-4" />
+                              Download PDF
+                            </DropdownMenuItem>
+                            {(invoice.status === "save" || invoice.status === "pending") && (
+                              <DropdownMenuItem onClick={() => onSendReminder?.(invoice.id)}>
+                                <Send className="mr-2 h-4 w-4" />
+                                Send Reminder
+                              </DropdownMenuItem>
+                            )}
+                            {invoice.status !== "paid" && (
+                              <DropdownMenuItem onClick={() => onMarkAsPaid?.(invoice.id)}>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Mark as Paid
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(invoice.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -215,34 +203,34 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
         </Card>
         <Card>
           <CardContent className="p-4">
-             <div className="text-2xl font-bold text-success">
-               ₹{filteredInvoices
-                 .filter(i => i.status === "paid")
-                 .reduce((sum, i) => sum + i.amount, 0)
-                 .toLocaleString()}
-             </div>
+            <div className="text-2xl font-bold text-success">
+              ₹{filteredInvoices
+                .filter(i => i.status === "paid")
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">Paid Amount</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-             <div className="text-2xl font-bold text-primary">
-               ₹{filteredInvoices
-                 .filter(i => i.status === "pending" || i.status === "sent")
-                 .reduce((sum, i) => sum + i.amount, 0)
-                 .toLocaleString()}
-             </div>
+            <div className="text-2xl font-bold text-primary">
+              ₹{filteredInvoices
+                .filter(i => i.status === "pending" || i.status === "sent")
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">Pending Amount</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-             <div className="text-2xl font-bold text-destructive">
-               ₹{filteredInvoices
-                 .filter(i => i.status === "overdue")
-                 .reduce((sum, i) => sum + i.amount, 0)
-                 .toLocaleString()}
-             </div>
+            <div className="text-2xl font-bold text-destructive">
+              ₹{filteredInvoices
+                .filter(i => i.status === "overdue")
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">Overdue Amount</p>
           </CardContent>
         </Card>
@@ -251,7 +239,7 @@ const InvoiceList = ({ invoices, onCreateNew, onViewInvoice, onDelete, onMarkAsP
             <div className="text-2xl font-bold text-muted-foreground">
               {filteredInvoices.filter(i => i.status === "save").length}
             </div>
-            <p className="text-xs text-muted-foreground">Save</p>
+            <p className="text-xs text-muted-foreground">Saved Drafts</p>
           </CardContent>
         </Card>
       </div>

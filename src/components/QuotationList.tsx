@@ -51,35 +51,9 @@ const QuotationList = ({
 }: QuotationListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const mockQuotations = [
-    {
-      id: "QUO-001",
-      customer: { name: "Acme Corporation" },
-      amount: 2450.00,
-      status: "sent",
-      date: "2024-01-15",
-      valid_until: "2024-02-15"
-    },
-    {
-      id: "QUO-002", 
-      customer: { name: "TechStart Inc" },
-      amount: 1200.00,
-      status: "save",
-      date: "2024-01-14",
-      valid_until: "2024-02-14"
-    }
-  ];
-
-  const displayQuotations = quotations.length > 0 ? quotations.map(q => ({
+  const displayQuotations = quotations.map(q => ({
     id: q.id,
     customer: q.customer?.name || 'Unknown Customer',
-    amount: q.amount,
-    status: q.status,
-    date: q.date,
-    validUntil: q.valid_until
-  })) : mockQuotations.map(q => ({
-    id: q.id,
-    customer: q.customer.name,
     amount: q.amount,
     status: q.status,
     date: q.date,
@@ -95,7 +69,7 @@ const QuotationList = ({
       expired: { variant: "secondary", label: "Expired", className: "bg-muted text-muted-foreground" }
     };
     
-    const config = variants[status] || variants.draft;
+    const config = variants[status] || variants.save;
     return (
       <Badge variant={config.variant} className={config.className}>
         {config.label}
