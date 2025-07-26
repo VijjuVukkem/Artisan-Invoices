@@ -344,7 +344,7 @@ const Settings = () => {
       </Card>
 
       {/* Data Management */}
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Trash2 className="mr-2 h-5 w-5" />
@@ -367,7 +367,7 @@ const Settings = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 };
