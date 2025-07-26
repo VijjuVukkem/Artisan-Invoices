@@ -11,7 +11,16 @@ import {
   Menu,
   X,
   LogOut,
+  User,
+  ChevronDown,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import Footer from "@/components/Footer";
 
 interface LayoutProps {
@@ -20,12 +29,12 @@ interface LayoutProps {
   onPageChange: (page: string) => void;
 }
 
-const FOOTER_HEIGHT = 72; // 18px top + 18px bottom padding * 2 = 72px total height approx
-const HEADER_HEIGHT = 56; // approx header height in px
+const FOOTER_HEIGHT = 72;
+const HEADER_HEIGHT = 64; // Increased for navigation
 
 const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -39,127 +48,184 @@ const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
     { name: "Settings", icon: Settings, key: "settings" },
   ];
 
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
+  };
+
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-        style={{ height: "100vh" }}
-      >
-        <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Artisan Apparels" width={50} />
-            <h1 className="text-3xl font-bold text-primary">Artisan</h1>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <nav className="p-4 space-y-2 overflow-auto" style={{ height: `calc(100vh - 72px)` }}>
-          {navigation.map((item) => (
-            <Button
-              key={item.key}
-              variant={currentPage === item.key ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => {
-                onPageChange(item.key);
-                setSidebarOpen(false);
-              }}
-            >
-              <item.icon className="mr-3 h-4 w-4" />
-              {item.name}
-            </Button>
-          ))}
-          <div className="border-t pt-4 mt-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-destructive"
-              onClick={handleSignOut}
-            >
-              <LogOut className="mr-3 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        </nav>
-      </aside>
-
-      {/* Main content wrapper */}
-      <div
-        className="flex flex-col flex-1 lg:pl-64"
-        style={{
-          height: "100vh",
-          paddingBottom: FOOTER_HEIGHT,
-        }}
-      >
-        {/* Header */}
-        <header
-          className="bg-card border-b px-6 py-4 flex-shrink-0"
-          style={{ height: HEADER_HEIGHT }}
-        >
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header Navigation */}
+      <header className="bg-card border-b shadow-sm" style={{ height: HEADER_HEIGHT }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
           <div className="flex items-center justify-between h-full">
-            <div className="flex items-center">
+            {/* Logo and Brand */}
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Artisan Apparels" className="w-10 h-10" />
+              <h1 className="text-xl font-bold text-primary">ARTISAN</h1>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-1">
+              {navigation.map((item) => (
+                <Button
+                  key={item.key}
+                  variant={currentPage === item.key ? "default" : "ghost"}
+                  className="flex items-center gap-2"
+                  onClick={() => onPageChange(item.key)}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.name}
+                </Button>
+              ))}
+            </nav>
+
+            {/* Right side - Action buttons and User menu */}
+            <div className="flex items-center gap-4">
+              {/* Action Buttons */}
+              <div className="hidden sm:flex items-center space-x-2">
+                {(currentPage === "quotations" || currentPage === "invoices") && (
+                  <Button
+                    size="sm"
+                    onClick={() => onPageChange(`new-${currentPage.slice(0, -1)}`)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    New {currentPage.slice(0, -1)}
+                  </Button>
+                )}
+                {currentPage === "customers" && (
+                  <Button size="sm" onClick={() => onPageChange("new-customer")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Customer
+                  </Button>
+                )}
+              </div>
+
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 px-3">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline text-sm">{getUserDisplayName()}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-3 py-2">
+                    <p className="text-sm font-medium">{getUserDisplayName()}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onPageChange("settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleSignOut}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Mobile menu button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className="lg:hidden mr-2"
-                onClick={() => setSidebarOpen(true)}
+                className="md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                <Menu className="h-4 w-4" />
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
-              <h2 className="text-2xl font-semibold text-foreground capitalize">
-                {currentPage}
-              </h2>
-            </div>
-            <div className="flex items-center space-x-2">
-              {(currentPage === "quotations" || currentPage === "invoices") && (
-                <Button
-                  onClick={() =>
-                    onPageChange(`new-${currentPage.slice(0, -1)}`)
-                  }
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  New {currentPage.slice(0, -1)}
-                </Button>
-              )}
-              {currentPage === "customers" && (
-                <Button onClick={() => onPageChange("new-customer")}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Customer
-                </Button>
-              )}
             </div>
           </div>
-        </header>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-card">
+            <div className="px-4 py-2 space-y-1">
+              {navigation.map((item) => (
+                <Button
+                  key={item.key}
+                  variant={currentPage === item.key ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => {
+                    onPageChange(item.key);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <item.icon className="mr-3 h-4 w-4" />
+                  {item.name}
+                </Button>
+              ))}
+              
+              {/* Mobile action buttons */}
+              <div className="pt-2 border-t space-y-1">
+                {(currentPage === "quotations" || currentPage === "invoices") && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      onPageChange(`new-${currentPage.slice(0, -1)}`);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Plus className="mr-3 h-4 w-4" />
+                    New {currentPage.slice(0, -1)}
+                  </Button>
+                )}
+                {currentPage === "customers" && (
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      onPageChange("new-customer");
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Plus className="mr-3 h-4 w-4" />
+                    New Customer
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col" style={{ paddingBottom: FOOTER_HEIGHT }}>
+        {/* Page Title Bar */}
+        <div className="bg-muted/30 px-6 py-4 border-b">
+          <h2 className="text-2xl font-semibold text-foreground capitalize">
+            {currentPage.replace('-', ' ')}
+          </h2>
+        </div>
 
         {/* Page content */}
-        <main className="flex-grow p-6 overflow-hidden">{children}</main>
-
-        {/* Fixed footer */}
-        <footer
-          className="fixed bottom-0 left-0 right-0 bg-gray-900 text-gray-300 border-t"
-          style={{ height: FOOTER_HEIGHT }}
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center">
-            <p className="text-sm select-none">
-              &copy; {new Date().getFullYear()} Dexorzo Creations. All rights reserved.
-            </p>
-          </div>
-        </footer>
+        <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
+
+      {/* Fixed footer */}
+      <footer
+        className="fixed bottom-0 left-0 right-0 bg-gray-900 text-gray-300 border-t z-40"
+        style={{ height: FOOTER_HEIGHT }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center">
+          <p className="text-sm select-none">
+            &copy; {new Date().getFullYear()} Dexorzo Creations. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
