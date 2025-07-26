@@ -209,7 +209,7 @@ const InvoiceForm = ({ customers, onSubmit, onCancel }: InvoiceFormProps) => {
                   </div>
                   <div className="col-span-2">
                     <Label>Amount</Label>
-                    <Input value={`$${item.amount.toFixed(2)}`} disabled />
+                    <Input value={`₹${item.amount.toFixed(2)}`} disabled />
                   </div>
                   <div className="col-span-1">
                     {items.length > 1 && (
@@ -228,7 +228,7 @@ const InvoiceForm = ({ customers, onSubmit, onCancel }: InvoiceFormProps) => {
             </div>
 
             <div className="text-right mt-4">
-              <p className="text-lg font-semibold">Total: ${totalAmount.toFixed(2)}</p>
+              <p className="text-lg font-semibold">Total: ₹{totalAmount.toFixed(2)}</p>
             </div>
           </div>
 

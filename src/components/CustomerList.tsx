@@ -169,7 +169,7 @@ const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: Cust
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
-                        ${customer.totalAmount.toLocaleString()}
+                        ₹{customer.totalAmount.toLocaleString()}
                       </TableCell>
                       <TableCell>{customer.lastActivity}</TableCell>
                       <TableCell className="text-right">
@@ -235,7 +235,7 @@ const CustomerList = ({ customers, onCreateNew, onViewCustomer, onDelete }: Cust
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-success">
-              ${filteredCustomers
+              ₹{filteredCustomers
                 .reduce((sum, c) => sum + c.totalAmount, 0)
                 .toLocaleString()}
             </div>

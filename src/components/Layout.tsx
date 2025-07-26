@@ -7,7 +7,6 @@ import {
   Users,
   BarChart3,
   Settings,
-  Plus,
   Menu,
   X,
   LogOut,
@@ -85,27 +84,8 @@ const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
               ))}
             </nav>
 
-            {/* Right side - Action buttons and User menu */}
+            {/* Right side - User menu only */}
             <div className="flex items-center gap-4">
-              {/* Action Buttons */}
-              <div className="hidden sm:flex items-center space-x-2">
-                {(currentPage === "quotations" || currentPage === "invoices") && (
-                  <Button
-                    size="sm"
-                    onClick={() => onPageChange(`new-${currentPage.slice(0, -1)}`)}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    New {currentPage.slice(0, -1)}
-                  </Button>
-                )}
-                {currentPage === "customers" && (
-                  <Button size="sm" onClick={() => onPageChange("new-customer")}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Customer
-                  </Button>
-                )}
-              </div>
-
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -167,36 +147,6 @@ const Layout = ({ children, currentPage, onPageChange }: LayoutProps) => {
                   {item.name}
                 </Button>
               ))}
-              
-              {/* Mobile action buttons */}
-              <div className="pt-2 border-t space-y-1">
-                {(currentPage === "quotations" || currentPage === "invoices") && (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      onPageChange(`new-${currentPage.slice(0, -1)}`);
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <Plus className="mr-3 h-4 w-4" />
-                    New {currentPage.slice(0, -1)}
-                  </Button>
-                )}
-                {currentPage === "customers" && (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      onPageChange("new-customer");
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <Plus className="mr-3 h-4 w-4" />
-                    New Customer
-                  </Button>
-                )}
-              </div>
             </div>
           </div>
         )}
