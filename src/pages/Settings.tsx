@@ -1,32 +1,30 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Settings as SettingsIcon, Building, Mail, Phone, MapPin } from "lucide-react";
+import { useSettings } from "@/hooks/useSettings";
+import { Upload, Settings as SettingsIcon, Building, Bell, Trash2 } from "lucide-react";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 
 const Settings = () => {
-  const [companySettings, setCompanySettings] = useState({
-    name: "Your Company Name",
-    email: "info@yourcompany.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Business Street, City, State 12345",
-    website: "www.yourcompany.com",
-    taxNumber: "123-456-789",
-    logo: ""
-  });
-
-  const [invoiceSettings, setInvoiceSettings] = useState({
-    prefix: "INV",
-    quotationPrefix: "QUO",
-    defaultTerms: "Payment is due within 30 days of invoice date.",
-    defaultNotes: "Thank you for your business!",
-    currency: "USD"
-  });
-
   const { toast } = useToast();
+  const {
+    companySettings,
+    invoiceSettings,
+    notificationSettings,
+    loading,
+    setCompanySettings,
+    setInvoiceSettings,
+    setNotificationSettings,
+    saveCompanySettings,
+    saveInvoiceSettings,
+    saveNotificationSettings
+  } = useSettings();
+  
+  const { customers, quotations, invoices, deleteCustomer, deleteQuotation, deleteInvoice } = useSupabaseData();
 
   const handleCompanyChange = (field: string, value: string) => {
     setCompanySettings(prev => ({ ...prev, [field]: value }));
@@ -36,22 +34,20 @@ const Settings = () => {
     setInvoiceSettings(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleNotificationChange = (field: string, value: boolean | number) => {
+    setNotificationSettings(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSaveCompany = async () => {
-    // In a real app, this would save to database
-    localStorage.setItem('companySettings', JSON.stringify(companySettings));
-    toast({
-      title: "Company Settings Saved",
-      description: "Your company information has been updated."
-    });
+    await saveCompanySettings(companySettings);
   };
 
   const handleSaveInvoice = async () => {
-    // In a real app, this would save to database
-    localStorage.setItem('invoiceSettings', JSON.stringify(invoiceSettings));
-    toast({
-      title: "Invoice Settings Saved",
-      description: "Your invoice settings have been updated."
-    });
+    await saveInvoiceSettings(invoiceSettings);
+  };
+
+  const handleSaveNotifications = async () => {
+    await saveNotificationSettings(notificationSettings);
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +74,46 @@ const Settings = () => {
       });
     }
   };
+
+  const handleDeleteItems = async () => {
+    try {
+      // Find and delete specific items
+      const quoToDelete = quotations.filter(q => q.quotation_number === "QUO-001");
+      const invToDelete = invoices.filter(i => i.invoice_number === "INV-001" || i.invoice_number === "INV-002");
+      const custToDelete = customers.filter(c => c.name === "Acme Corporation");
+
+      // Delete quotations
+      for (const quo of quoToDelete) {
+        await deleteQuotation(quo.id);
+      }
+
+      // Delete invoices
+      for (const inv of invToDelete) {
+        await deleteInvoice(inv.id);
+      }
+
+      // Delete customers
+      for (const cust of custToDelete) {
+        await deleteCustomer(cust.id);
+      }
+
+      toast({
+        title: "Items Deleted",
+        description: "Selected quotations, invoices, and customers have been deleted."
+      });
+    } catch (error) {
+      console.error("Error deleting items:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete some items. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6">Loading settings...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -257,22 +293,78 @@ const Settings = () => {
       {/* Notification Settings */}
       <Card>
         <CardHeader>
-          <CardTitle>Notification Settings</CardTitle>
+          <CardTitle className="flex items-center">
+            <Bell className="mr-2 h-5 w-5" />
+            Notification Settings
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <Label>Email Notifications</Label>
               <p className="text-sm text-muted-foreground">Receive notifications when invoices are paid</p>
             </div>
-            <Button variant="outline">Configure</Button>
+            <Switch
+              checked={notificationSettings.emailNotifications}
+              onCheckedChange={(checked) => handleNotificationChange("emailNotifications", checked)}
+            />
           </div>
+          
           <div className="flex items-center justify-between">
             <div>
               <Label>Payment Reminders</Label>
               <p className="text-sm text-muted-foreground">Automatically send payment reminders</p>
             </div>
-            <Button variant="outline">Configure</Button>
+            <Switch
+              checked={notificationSettings.paymentReminders}
+              onCheckedChange={(checked) => handleNotificationChange("paymentReminders", checked)}
+            />
+          </div>
+
+          {notificationSettings.paymentReminders && (
+            <div>
+              <Label htmlFor="reminderDays">Reminder Days Before Due Date</Label>
+              <Input
+                id="reminderDays"
+                type="number"
+                min="1"
+                max="30"
+                value={notificationSettings.reminderDays}
+                onChange={(e) => handleNotificationChange("reminderDays", parseInt(e.target.value))}
+                className="w-24 mt-2"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Send reminders {notificationSettings.reminderDays} days before invoice due date
+              </p>
+            </div>
+          )}
+
+          <Button onClick={handleSaveNotifications}>Save Notification Settings</Button>
+        </CardContent>
+      </Card>
+
+      {/* Data Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Trash2 className="mr-2 h-5 w-5" />
+            Data Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 border rounded-lg bg-muted/50">
+            <h4 className="font-medium mb-2">Quick Delete Test Data</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Delete QUO-001, INV-001, INV-002, and Acme Corporation test data
+            </p>
+            <Button 
+              onClick={handleDeleteItems}
+              variant="destructive"
+              size="sm"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Test Data
+            </Button>
           </div>
         </CardContent>
       </Card>
